@@ -1,0 +1,54 @@
+# One command to run the whole stack:  docker compose up
+# Services:
+#   db     -> Postgres 16 WITH the PostGIS extension (geo queries)
+#   redis  -> cache + Channels layer + Celery broker
+#   web    -> Django (served over ASGI by daphne, so it speaks WebSockets too)
+#   worker -> Celery worker for async jobs
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"          # exposed so you can inspect with a GUI (pgAdmin/DBeaver)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    env_file: .env
+    command: >
+      sh -c "python manage.py migrate &&
+             daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+    volumes:
+      - .:/app                # live code reload during development
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build: .
+    env_file: .env
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  pgdata:
