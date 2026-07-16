@@ -14,6 +14,7 @@ and multiple service **modes** (chat / onsite).
 | Concern | Choice |
 |---|---|
 | Web / API | Django + Django REST Framework |
+| High-throughput API | **FastAPI** — async hot-path service (booking-ingest & availability search) |
 | Database | PostgreSQL + **PostGIS** (geospatial provider search) |
 | Real-time | Django Channels (WebSockets) over Redis |
 | Async jobs | Celery + Redis |
@@ -25,8 +26,14 @@ and multiple service **modes** (chat / onsite).
 
 One Django project, separated into bounded-context apps:
 `accounts`, `catalog`, `providers`, `booking`, `pricing`, `payments`, `chat`,
-`reviews`. A separate FastAPI service handles the high-throughput booking-ingest
-hot path.
+`reviews`.
+
+Django owns the domain: the ORM, admin, and the transactional write flows
+(consultation → estimate → booking, with row-level locking). A **separate
+FastAPI service** owns one or two read-heavy, high-QPS endpoints — availability
+search and booking-ingest — where async I/O gives more throughput per instance
+than sync Django. It reads the **same** Postgres; the boundary is kept narrow on
+purpose so there's no second ORM to maintain.
 
 The three "portals" are **three frontends against one role-scoped API**, not
 three backends.
