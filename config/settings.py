@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "channels",
     # Local apps (bounded contexts). More get added as we build them.
     "accounts",
+    "catalog",
+    "providers",
 ]
 
 MIDDLEWARE = [
