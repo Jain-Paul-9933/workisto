@@ -12,5 +12,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health),
     path("api/", include("accounts.urls")),
+    path("api/", include("catalog.urls")),
+    path("api/", include("providers.urls")),
     # More API slices get mounted here as we build them.
 ]
