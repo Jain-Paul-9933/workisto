@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import path
+from django.urls import include, path
 
 
 def health(_request):
@@ -11,5 +11,6 @@ def health(_request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health),
-    # API routes get mounted here as we build each feature slice.
+    path("api/", include("accounts.urls")),
+    # More API slices get mounted here as we build them.
 ]

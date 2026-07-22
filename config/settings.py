@@ -110,6 +110,21 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/2
 CELERY_TIMEZONE = "UTC"
 
 
+# --- Caching & sessions -----------------------------------------------------
+# Auth is cookie/session based on purpose — see docs/adr/0001-auth.md.
+# Sessions use the cached_db backend: reads hit Redis (fast, shared across all
+# web instances on Railway) while writes go THROUGH to Postgres, so a Redis
+# restart or eviction never silently logs the whole marketplace out. Revocation
+# stays instant — logout/ban is just a row delete.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.getenv("CACHE_URL", "redis://redis:6379/3"),
+    }
+}
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+
+
 # --- DRF --------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
