@@ -1,5 +1,5 @@
 """
-Serializers for provider self-service.
+Serializers for provider self-service and public discovery.
 
 Two deliberate shapes:
 - Location crosses the API as plain `latitude`/`longitude` (what a map widget
@@ -15,6 +15,13 @@ from rest_framework import serializers
 from catalog.models import ServiceCategory
 
 from .models import ServiceMode, ServiceOffering, ServiceProvider
+
+
+def latlng(point):
+    """PostGIS Point (x=lng, y=lat) → the {latitude, longitude} shape clients use."""
+    if point is None:
+        return None
+    return {"latitude": point.y, "longitude": point.x}
 
 
 class ServiceProviderSerializer(serializers.ModelSerializer):
@@ -33,10 +40,7 @@ class ServiceProviderSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "rating_avg", "rating_count", "created_at"]
 
     def get_location(self, obj):
-        # PostGIS Point is (x=lng, y=lat); present it the human way round.
-        if obj.location is None:
-            return None
-        return {"latitude": obj.location.y, "longitude": obj.location.x}
+        return latlng(obj.location)
 
     def validate(self, attrs):
         lat = attrs.pop("latitude", None)
@@ -80,3 +84,65 @@ class ServiceOfferingSerializer(serializers.ModelSerializer):
         # service, create another offering.
         if isinstance(self.instance, ServiceOffering):
             self.fields["category"].read_only = True
+
+
+# --- Public discovery (read-only) -------------------------------------------
+
+class PublicOfferingSerializer(serializers.ModelSerializer):
+    """What a customer sees about one of a provider's services."""
+
+    category_name = serializers.CharField(source="category.name", read_only=True)
+
+    class Meta:
+        model = ServiceOffering
+        fields = [
+            "id", "category", "category_name", "current_price", "booking_type",
+            "consultation_fee", "supported_modes", "duration_minutes",
+        ]
+        read_only_fields = fields
+
+
+class ProviderSearchSerializer(serializers.ModelSerializer):
+    """A single hit in a geo search — profile summary plus how far away they are.
+    `distance` is attached by the view's Distance() annotation."""
+
+    distance_km = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceProvider
+        fields = [
+            "id", "full_name", "bio", "rating_avg", "rating_count",
+            "distance_km", "location",
+        ]
+        read_only_fields = fields
+
+    def get_distance_km(self, obj):
+        # obj.distance is a Distance measure from the annotation.
+        distance = getattr(obj, "distance", None)
+        return round(distance.km, 2) if distance is not None else None
+
+    def get_location(self, obj):
+        return latlng(obj.location)
+
+
+class PublicProviderSerializer(serializers.ModelSerializer):
+    """Full public profile: the provider plus their active offerings."""
+
+    location = serializers.SerializerMethodField()
+    offerings = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceProvider
+        fields = [
+            "id", "full_name", "bio", "rating_avg", "rating_count",
+            "location", "offerings",
+        ]
+        read_only_fields = fields
+
+    def get_location(self, obj):
+        return latlng(obj.location)
+
+    def get_offerings(self, obj):
+        active = obj.offerings.filter(is_active=True).select_related("category")
+        return PublicOfferingSerializer(active, many=True).data
