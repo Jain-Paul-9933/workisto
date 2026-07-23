@@ -50,5 +50,19 @@ services:
       - db
       - redis
 
+  # Separate async read service (FastAPI): the high-QPS provider-search hot path.
+  # Same image, same Postgres — different process. Trusts Django-signed tokens.
+  search:
+    build: .
+    env_file: .env
+    command: uvicorn search_service.main:app --host 0.0.0.0 --port 8001
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:

@@ -17,11 +17,15 @@ redis>=5.0
 
 # --- Payments ---
 stripe>=10.0                    # imported lazily; only needed when PAYMENT_GATEWAY=stripe
+PyJWT>=2.9                      # short-lived tokens for the search-service boundary
+
+# --- Search service (separate FastAPI app; same Postgres, no ORM) ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+asyncpg>=0.30                   # async Postgres driver for the read hot-path
+httpx>=0.27                     # FastAPI TestClient transport
 
 # --- Tests (your resume claims pytest — we'll actually use it) ---
 pytest>=8.3
 pytest-django>=4.9
-pytest-asyncio>=0.24            # async tests for the Channels WebSocket consumer
-
-# Added in a later increment, noted here so the roadmap is visible:
-#   fastapi, uvicorn  -> high-throughput booking-ingest service
+pytest-asyncio>=0.24            # async tests for Channels + the FastAPI service

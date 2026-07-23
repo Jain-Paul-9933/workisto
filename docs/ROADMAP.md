@@ -17,13 +17,17 @@ increment is a self-contained, tested vertical slice.
 | 8 | **Dynamic pricing** | `pricing` app; a bounded, review-driven multiplier moves each offering's `current_price` off `base_price` (min-reviews gate, neutral 3.0, clamped 0.85–1.25). Runs on the **Celery** worker: a review change enqueues the re-price via `transaction.on_commit` so the worker reads the committed rating. `PriceChange` audit trail + provider price-history endpoint. |
 | 9 | **Payments** | `payments` app; Stripe **PaymentIntents behind a gateway abstraction** (real `StripeGateway` + `FakeGateway` so tests never touch the network). `Payment` per booking with kinds CONSULTATION/ADVANCE/FINAL, server-authoritative amounts (30% advance, consultation fee credited into the final), partial-unique one-success-per-kind. Confirmation via a **signature-verified, idempotent webhook** — status flips only on Stripe's word, never the client's. |
 | 10 | **Real-time chat** | `chat` app; Channels `AsyncWebsocketConsumer` at `ws/bookings/{id}/chat/`, **authenticated by the session cookie** (ADR 0001) and gated to the booking's two participants. Messages persisted + fanned out to a per-booking group over the Redis channel layer; REST history endpoint. Tested with `WebsocketCommunicator` (two clients exchanging live). Wires the `websocket` branch of `config/asgi.py`. |
+| 11 | **FastAPI read service** | Separate async `search_service/` (own container/uvicorn, **no Django import**) serving the provider-search hot path over `asyncpg` against the **same** Postgres — raw PostGIS SQL, no second ORM. Trusts a **short-lived HS256 token Django mints** and it verifies statelessly (ADR 0001). Tested end-to-end: Django signs → FastAPI verifies → shared-DB geo results. |
+
+## ✅ Backend complete
+
+All eleven backend increments are built, tested (85 passing on PostGIS + Redis),
+and each shipped on its own branch. The first demoable vertical slice
+(increments 3–5) works: register a provider → onboard with a map location →
+found by distance & rating.
 
 ## 🔜 Planned
 
-**First demoable vertical slice complete** (increments 3–5): register a provider
-→ onboard with a map location → search finds them by distance & rating. ✅
-
 | # | Increment | Scope |
 |---|---|---|
-| 11 | **FastAPI read service** | Extract availability search to the async hot path against the same Postgres; short-lived JWT at the boundary (ADR 0001). |
-| — | **Frontends (Track B)** | Three Next.js portals against the one role-scoped API. |
+| — | **Frontends (Track B)** | Three Next.js portals (customer / provider / admin) against the one role-scoped API. |

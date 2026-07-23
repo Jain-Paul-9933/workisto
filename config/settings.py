@@ -132,6 +132,13 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 
+# --- Search service boundary (ADR 0001) -------------------------------------
+# Django MINTS short-lived tokens the separate FastAPI search service VERIFIES.
+# Same secret both sides; the short TTL means no revocation list is needed.
+SEARCH_JWT_SECRET = os.getenv("SEARCH_JWT_SECRET", "dev-search-secret-change-me-in-production")
+SEARCH_JWT_TTL_SECONDS = int(os.getenv("SEARCH_JWT_TTL_SECONDS", "300"))
+
+
 # --- Caching & sessions -----------------------------------------------------
 # Auth is cookie/session based on purpose — see docs/adr/0001-auth.md.
 # Sessions use the cached_db backend: reads hit Redis (fast, shared across all

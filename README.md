@@ -50,6 +50,8 @@ docker compose up --build
 
 - API health check: http://localhost:8000/health/
 - Django admin: http://localhost:8000/admin/
+- Search service (FastAPI) health: http://localhost:8001/health — the async
+  provider-search hot path, a separate service against the same Postgres.
 
 Create an admin user (in a second terminal, once the stack is up):
 
