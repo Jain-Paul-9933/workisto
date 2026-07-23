@@ -123,3 +123,21 @@ class BookingCancelView(APIView):
         booking.status = BookingStatus.CANCELLED
         booking.save(update_fields=["status", "updated_at"])
         return Response(BookingSerializer(booking).data)
+
+
+class BookingCompleteView(APIView):
+    """POST /api/bookings/{id}/complete/ — provider marks the job done.
+
+    Completion is what unlocks a review (see the reviews app)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        booking = get_object_or_404(_participant_bookings(request.user), pk=pk)
+        if booking.provider.user_id != request.user.id:
+            raise PermissionDenied("Only the provider can mark a booking complete.")
+        if booking.status != BookingStatus.CONFIRMED:
+            raise ValidationError("Only a confirmed booking can be completed.")
+        booking.status = BookingStatus.COMPLETED
+        booking.save(update_fields=["status", "updated_at"])
+        return Response(BookingSerializer(booking).data)
