@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "reviews",
     "pricing",
     "payments",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -100,12 +101,17 @@ AUTH_USER_MODEL = "accounts.User"
 
 
 # --- Channels (WebSocket layer over Redis) ----------------------------------
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [os.getenv("REDIS_URL", "redis://redis:6379/0")]},
+# Tests use the in-process layer (env-toggled): no Redis dependency, and group
+# fan-out is deterministic within a single test process.
+if os.getenv("USE_INMEMORY_CHANNEL_LAYER", "0") == "1":
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [os.getenv("REDIS_URL", "redis://redis:6379/0")]},
+        }
     }
-}
 
 
 # --- Celery -----------------------------------------------------------------

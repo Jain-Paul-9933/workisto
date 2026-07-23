@@ -21,6 +21,7 @@ stripe>=10.0                    # imported lazily; only needed when PAYMENT_GATE
 # --- Tests (your resume claims pytest — we'll actually use it) ---
 pytest>=8.3
 pytest-django>=4.9
+pytest-asyncio>=0.24            # async tests for the Channels WebSocket consumer
 
 # Added in a later increment, noted here so the roadmap is visible:
 #   fastapi, uvicorn  -> high-throughput booking-ingest service
