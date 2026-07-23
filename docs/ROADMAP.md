@@ -12,6 +12,7 @@ increment is a self-contained, tested vertical slice.
 | 3 | **Auth & accounts API** | Session-based register / login / logout / `me`; signup constrained to CUSTOMER/PROVIDER; role permission classes; Redis `cached_db` sessions. See [ADR 0001](adr/0001-auth.md). |
 | 4 | **Provider onboarding + catalog API** | Public `ServiceCategory` read (list + by-slug); provider self-service `POST /providers/` (explicit onboarding, once, lat/lng→PostGIS point), `GET/PATCH /providers/me/`, and own-offering CRUD under `/providers/me/offerings/`. Queryset scoped to caller = object-level isolation; `current_price`/`rating_*` read-only (engine-owned); category immutable after create. |
 | 5 | **Geo provider search** *(headline)* | Public `GET /providers/search/`: `ST_DWithin` radius filter (GiST-indexed) around lat/lng, category + mode filters that must match a **single** offering, distance annotated in, ranked by rating then proximity. Plus public `GET /providers/{id}/` detail with active offerings. Excludes paused/offering-less providers. Later becomes the FastAPI async read service. |
+| 6 | **Booking + slot concurrency** | `booking` app; instant bookings and the consultation→estimate→confirm flow over one `Booking` row; slot reservation guarded by a `select_for_update` lock on the provider row (no double-booking, proven by a real 2-thread test). Participant-scoped visibility; cancel frees the slot. See [ADR 0002](adr/0002-slot-concurrency.md). |
 
 ## 🔜 Planned
 
@@ -20,7 +21,6 @@ increment is a self-contained, tested vertical slice.
 
 | # | Increment | Scope |
 |---|---|---|
-| 6 | **Booking + slot concurrency** | `booking` app; consultation → estimate → booking; `select_for_update` row locking → no double-booking. |
 | 7 | **Reviews** | `reviews` app; post-booking reviews update `rating_avg`/`rating_count`. |
 | 8 | **Dynamic pricing** | `pricing` app; review-driven recompute of `current_price` via Celery. |
 | 9 | **Payments** | `payments` app; Stripe advance + final; consultation fee credited. |
