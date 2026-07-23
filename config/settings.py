@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "providers",
     "booking",
     "reviews",
+    "pricing",
 ]
 
 MIDDLEWARE = [
@@ -110,6 +111,9 @@ CHANNEL_LAYERS = {
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
 CELERY_TIMEZONE = "UTC"
+# Tests flip this on (via env) so tasks run inline instead of needing a worker.
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "0") == "1"
+CELERY_TASK_EAGER_PROPAGATES = True
 
 
 # --- Caching & sessions -----------------------------------------------------

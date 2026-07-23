@@ -16,5 +16,6 @@ urlpatterns = [
     path("api/", include("providers.urls")),
     path("api/", include("booking.urls")),
     path("api/", include("reviews.urls")),
+    path("api/", include("pricing.urls")),
     # More API slices get mounted here as we build them.
 ]
