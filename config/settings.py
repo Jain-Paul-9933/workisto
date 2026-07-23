@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "booking",
     "reviews",
     "pricing",
+    "payments",
 ]
 
 MIDDLEWARE = [
@@ -114,6 +115,15 @@ CELERY_TIMEZONE = "UTC"
 # Tests flip this on (via env) so tasks run inline instead of needing a worker.
 CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "0") == "1"
 CELERY_TASK_EAGER_PROPAGATES = True
+
+
+# --- Payments ---------------------------------------------------------------
+# "fake" (default) keeps tests and keyless dev off the network; set to "stripe"
+# in real environments alongside the keys below.
+PAYMENT_GATEWAY = os.getenv("PAYMENT_GATEWAY", "fake")
+PAYMENT_CURRENCY = os.getenv("PAYMENT_CURRENCY", "inr")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 
 # --- Caching & sessions -----------------------------------------------------

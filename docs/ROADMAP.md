@@ -15,6 +15,7 @@ increment is a self-contained, tested vertical slice.
 | 6 | **Booking + slot concurrency** | `booking` app; instant bookings and the consultation→estimate→confirm flow over one `Booking` row; slot reservation guarded by a `select_for_update` lock on the provider row (no double-booking, proven by a real 2-thread test). Participant-scoped visibility; cancel frees the slot. See [ADR 0002](adr/0002-slot-concurrency.md). |
 | 7 | **Reviews** | `reviews` app; a customer reviews their own **completed** booking (one review per booking); a signal recomputes the provider's denormalised `rating_avg`/`rating_count` on every review change — the values search ranks by. Public per-provider review list; owner-only edit/delete. Added a provider `complete` action to bookings to gate reviews. |
 | 8 | **Dynamic pricing** | `pricing` app; a bounded, review-driven multiplier moves each offering's `current_price` off `base_price` (min-reviews gate, neutral 3.0, clamped 0.85–1.25). Runs on the **Celery** worker: a review change enqueues the re-price via `transaction.on_commit` so the worker reads the committed rating. `PriceChange` audit trail + provider price-history endpoint. |
+| 9 | **Payments** | `payments` app; Stripe **PaymentIntents behind a gateway abstraction** (real `StripeGateway` + `FakeGateway` so tests never touch the network). `Payment` per booking with kinds CONSULTATION/ADVANCE/FINAL, server-authoritative amounts (30% advance, consultation fee credited into the final), partial-unique one-success-per-kind. Confirmation via a **signature-verified, idempotent webhook** — status flips only on Stripe's word, never the client's. |
 
 ## 🔜 Planned
 
@@ -23,7 +24,6 @@ increment is a self-contained, tested vertical slice.
 
 | # | Increment | Scope |
 |---|---|---|
-| 9 | **Payments** | `payments` app; Stripe advance + final; consultation fee credited. |
 | 10 | **Real-time chat** | `chat` app; Channels WebSocket consumer over Redis (session-cookie auth). |
 | 11 | **FastAPI read service** | Extract availability search to the async hot path against the same Postgres; short-lived JWT at the boundary (ADR 0001). |
 | — | **Frontends (Track B)** | Three Next.js portals against the one role-scoped API. |

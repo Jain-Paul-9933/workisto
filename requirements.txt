@@ -15,10 +15,12 @@ daphne>=4.1                      # ASGI server that speaks HTTP + WebSocket
 celery>=5.4
 redis>=5.0
 
+# --- Payments ---
+stripe>=10.0                    # imported lazily; only needed when PAYMENT_GATEWAY=stripe
+
 # --- Tests (your resume claims pytest — we'll actually use it) ---
 pytest>=8.3
 pytest-django>=4.9
 
-# Added in later increments, noted here so the roadmap is visible:
-#   stripe            -> payments increment
+# Added in a later increment, noted here so the roadmap is visible:
 #   fastapi, uvicorn  -> high-throughput booking-ingest service
