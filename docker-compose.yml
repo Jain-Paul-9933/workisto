@@ -64,5 +64,16 @@ services:
       db:
         condition: service_healthy
 
+  # Next.js frontend (BFF): the browser's only origin. Proxies to `web`/`search`
+  # server-side, forwarding the httpOnly session cookie (ADR 0001).
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://web:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - web
+
 volumes:
   pgdata:

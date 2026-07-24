@@ -26,8 +26,16 @@ and each shipped on its own branch. The first demoable vertical slice
 (increments 3–5) works: register a provider → onboard with a map location →
 found by distance & rating.
 
-## 🔜 Planned
+## 🖥️ Frontend (Track B) — one modular Next.js app
+
+Decision (mirrors the backend's modular-monolith judgment): a **single** Next.js
+app — App Router, TypeScript, Tailwind — with role-scoped route groups, acting as
+a **BFF** that proxies to Django/FastAPI with the httpOnly session cookie
+(ADR 0001). Not three separate portals; admin stays on Django admin. Kept
+splittable via shared `lib/` + `components/`.
 
 | # | Increment | Scope |
 |---|---|---|
-| — | **Frontends (Track B)** | Three Next.js portals (customer / provider / admin) against the one role-scoped API. |
+| F1 | **Foundation + auth** ✅ | Scaffold (Next 16 + React 19 + Tailwind v4); BFF catch-all proxy (`app/api/bff/[...path]`) with cookie + CSRF relay; server session helper; `/login` + `/register` + authed home; `proxy.ts` (Next 16's renamed middleware) role routing; Dockerised + wired into compose. **Auth flow verified end-to-end against Django** (register → me → logout). |
+| F2 | **Provider flow** | Onboarding (drop map pin) → manage offerings/pricing → bookings dashboard (estimate / complete). |
+| F3 | **Customer flow** | Geo search → provider detail → book → pay → chat → review. |
