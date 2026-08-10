@@ -37,5 +37,5 @@ splittable via shared `lib/` + `components/`.
 | # | Increment | Scope |
 |---|---|---|
 | F1 | **Foundation + auth** ✅ | Scaffold (Next 16 + React 19 + Tailwind v4); BFF catch-all proxy (`app/api/bff/[...path]`) with cookie + CSRF relay; server session helper; `/login` + `/register` + authed home; `proxy.ts` (Next 16's renamed middleware) role routing; Dockerised + wired into compose. **Auth flow verified end-to-end against Django** (register → me → logout). |
-| F2 | **Provider flow** | Onboarding (drop map pin) → manage offerings/pricing → bookings dashboard (estimate / complete). |
+| F2 | **Provider flow** ✅ | Onboarding with a real **Leaflet map pin** (geolocation + click/drag, degrades to manual lat/lng) → offerings CRUD (price, booking type, consultation fee, chat/on-site modes, pause/activate) → bookings dashboard (estimate → complete, cancel) + accepting-bookings toggle. Provider chrome via `(provider)/layout.tsx`. **Verified end-to-end through the live BFF**: onboard → offerings CRUD → two-party booking lifecycle. |
 | F3 | **Customer flow** | Geo search → provider detail → book → pay → chat → review. |

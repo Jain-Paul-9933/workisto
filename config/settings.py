@@ -19,7 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Core -------------------------------------------------------------------
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+# `web` is the compose service name the Next.js BFF proxies to (http://web:8000),
+# so Django must accept it as a Host in the container network.
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,web").split(",")
 
 
 # --- Applications -----------------------------------------------------------
