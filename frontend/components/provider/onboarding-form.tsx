@@ -8,12 +8,12 @@ import { Button, ErrorText, Field, Input, Textarea } from "@/components/ui";
 import { apiSend } from "@/lib/api-client";
 import { firstError } from "@/lib/errors";
 import type { Provider } from "@/lib/types";
-import type { Coords } from "./map-picker";
+import type { Coords } from "@/components/map-picker";
 
 // The map touches `window`/Leaflet, so it's client-only — loaded lazily with a
 // placeholder while its JS arrives. (`ssr: false` is only allowed inside a
 // Client Component, which this is.)
-const MapPicker = dynamic(() => import("./map-picker"), {
+const MapPicker = dynamic(() => import("@/components/map-picker"), {
   ssr: false,
   loading: () => (
     <div className="flex h-72 w-full items-center justify-center rounded-lg border border-neutral-300 text-sm text-neutral-500 dark:border-neutral-700">

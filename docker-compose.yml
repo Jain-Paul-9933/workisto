@@ -70,10 +70,12 @@ services:
     build: ./frontend
     environment:
       BACKEND_URL: http://web:8000
+      SEARCH_URL: http://search:8001
     ports:
       - "3000:3000"
     depends_on:
       - web
+      - search
 
 volumes:
   pgdata:
