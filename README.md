@@ -48,6 +48,7 @@ cp .env.example .env      # then edit if you like
 docker compose up --build
 ```
 
+- Web app (Next.js): http://localhost:3000 — the customer/provider UI (BFF).
 - API health check: http://localhost:8000/health/
 - Django admin: http://localhost:8000/admin/
 - Search service (FastAPI) health: http://localhost:8001/health — the async
@@ -58,6 +59,21 @@ Create an admin user (in a second terminal, once the stack is up):
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
+
+### Demo data
+
+Seed a ready-to-explore marketplace — categories, five providers around
+Bengaluru (one rural, to show the geo radius), two customers, and a few completed
+jobs with reviews so ratings and search ranking have real data:
+
+```bash
+docker compose exec web python manage.py seed_demo
+```
+
+It's idempotent (safe to re-run). Every demo account signs in with the password
+`workisto-demo` — e.g. provider `ravi.plumber@workisto.demo`, customer
+`priya@workisto.demo`. Sign in at http://localhost:3000 and search near
+lat `12.97`, lng `77.62` with a 15 km radius.
 
 ## MVP scope
 
