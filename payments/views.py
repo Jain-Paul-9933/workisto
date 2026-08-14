@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.permissions import CanPay
 from booking.models import Booking
 
 from .gateway import WebhookError, get_gateway
@@ -31,10 +32,11 @@ def _participant_bookings(user):
 class BookingPayView(APIView):
     """POST /api/bookings/{id}/pay/ — customer starts a payment for the booking."""
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanPay]
 
     def post(self, request, pk):
         booking = get_object_or_404(_participant_bookings(request.user), pk=pk)
+        # Capability says "customers may pay"; this says "…for *your own* booking".
         if booking.customer_id != request.user.id:
             raise PermissionDenied("Only the customer can pay for this booking.")
 

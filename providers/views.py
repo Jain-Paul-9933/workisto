@@ -1,7 +1,8 @@
 """
 Provider self-service endpoints. Everything here is scoped to the *caller*:
 
-- `IsProvider` gates the whole surface to authenticated PROVIDER users.
+- Provider capabilities (see `accounts/roles.py`) gate the whole surface, so a
+  customer account gets 403 before any query runs.
 - Every queryset is filtered to `request.user`, which is also the object-level
   guard — a provider literally cannot address another provider's row, so
   retrieve/update/delete on someone else's offering 404s instead of leaking it.
@@ -15,7 +16,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 
-from accounts.permissions import IsProvider
+from accounts.permissions import CanManageOfferings, CanManageProfile, CanOnboard
 
 from .models import ServiceMode, ServiceOffering, ServiceProvider
 from .serializers import (
@@ -30,7 +31,7 @@ class ProviderOnboardView(generics.CreateAPIView):
     """POST /api/providers/ — create the caller's own profile, exactly once."""
 
     serializer_class = ServiceProviderSerializer
-    permission_classes = [IsProvider]
+    permission_classes = [CanOnboard]
 
     def perform_create(self, serializer):
         if ServiceProvider.objects.filter(user=self.request.user).exists():
@@ -42,7 +43,7 @@ class ProviderMeView(generics.RetrieveUpdateAPIView):
     """GET / PATCH /api/providers/me/ — the caller's own profile."""
 
     serializer_class = ServiceProviderSerializer
-    permission_classes = [IsProvider]
+    permission_classes = [CanManageProfile]
 
     def get_object(self):
         return get_object_or_404(ServiceProvider, user=self.request.user)
@@ -52,7 +53,7 @@ class ProviderOfferingsView(generics.ListCreateAPIView):
     """GET / POST /api/providers/me/offerings/ — the caller's own offerings."""
 
     serializer_class = ServiceOfferingSerializer
-    permission_classes = [IsProvider]
+    permission_classes = [CanManageOfferings]
 
     def get_queryset(self):
         return ServiceOffering.objects.filter(provider__user=self.request.user)
@@ -71,7 +72,7 @@ class ProviderOfferingDetailView(generics.RetrieveUpdateDestroyAPIView):
     """GET / PATCH / DELETE /api/providers/me/offerings/{id}/ — one own offering."""
 
     serializer_class = ServiceOfferingSerializer
-    permission_classes = [IsProvider]
+    permission_classes = [CanManageOfferings]
 
     def get_queryset(self):
         return ServiceOffering.objects.filter(provider__user=self.request.user)
