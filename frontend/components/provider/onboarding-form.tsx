@@ -35,6 +35,7 @@ export default function OnboardingForm({ initial }: { initial: Provider | null }
       : null,
   );
   const [recenterKey, setRecenterKey] = useState(0);
+  const [showManual, setShowManual] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -138,26 +139,39 @@ export default function OnboardingForm({ initial }: { initial: Provider | null }
         </div>
         <MapPicker value={coords} onChange={setCoords} recenterKey={recenterKey} />
         <p className="text-xs text-neutral-500">
-          Tap the map or drag the pin to mark exactly where you&rsquo;re based.
+          Search for your area, or tap the map and drag the pin to mark exactly where
+          you&rsquo;re based.
         </p>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Latitude">
-            <Input
-              inputMode="decimal"
-              value={coords ? String(coords.lat) : ""}
-              onChange={(e) => setManual("lat", e.target.value)}
-              placeholder="—"
-            />
-          </Field>
-          <Field label="Longitude">
-            <Input
-              inputMode="decimal"
-              value={coords ? String(coords.lng) : ""}
-              onChange={(e) => setManual("lng", e.target.value)}
-              placeholder="—"
-            />
-          </Field>
-        </div>
+
+        {/* Coordinates are a fallback, not the way in — search and the map are. */}
+        {showManual ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Latitude">
+              <Input
+                inputMode="decimal"
+                value={coords ? String(coords.lat) : ""}
+                onChange={(e) => setManual("lat", e.target.value)}
+                placeholder="—"
+              />
+            </Field>
+            <Field label="Longitude">
+              <Input
+                inputMode="decimal"
+                value={coords ? String(coords.lng) : ""}
+                onChange={(e) => setManual("lng", e.target.value)}
+                placeholder="—"
+              />
+            </Field>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowManual(true)}
+            className="text-xs text-neutral-500 underline hover:text-neutral-700 dark:hover:text-neutral-300"
+          >
+            Enter coordinates manually
+          </button>
+        )}
       </div>
 
       <ErrorText>{error}</ErrorText>

@@ -57,7 +57,7 @@ export default function SearchClient() {
     e.preventDefault();
     setError("");
     if (!coords) {
-      setError("Set where to search — use your location or tap the map.");
+      setError("Set where to search — search a place, use your location, or tap the map.");
       return;
     }
     setLoading(true);
