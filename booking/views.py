@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import User
+from accounts.permissions import CanBook
 from providers.models import BookingType
 
 from .models import Booking, BookingStatus
@@ -34,6 +34,13 @@ def _participant_bookings(user):
 class BookingListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        # Creating needs the `book` capability; *listing* deliberately doesn't —
+        # a provider reads this endpoint to see the bookings made against them.
+        if self.request.method == "POST":
+            return [IsAuthenticated(), CanBook()]
+        return super().get_permissions()
+
     def get_serializer_class(self):
         return BookingCreateSerializer if self.request.method == "POST" else BookingSerializer
 
@@ -44,9 +51,6 @@ class BookingListCreateView(generics.ListCreateAPIView):
         )
 
     def create(self, request, *args, **kwargs):
-        if request.user.role != User.Role.CUSTOMER:
-            raise PermissionDenied("Only customers can create bookings.")
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

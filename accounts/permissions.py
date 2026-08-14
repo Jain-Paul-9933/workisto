@@ -1,31 +1,49 @@
 """
-Role-based permission classes — the auth foundation the provider/booking
-endpoints build on. `IsAuthenticated` answers "are you logged in?"; these answer
-"are you the right *kind* of user?".
+DRF permission classes — a thin translation of `roles.py` into something views
+can declare. No role strings live here; this file only asks `user_can(...)`.
+
+    permission_classes = [CanBook]
+
+Views whose rule depends on the *object* rather than the role (only the provider
+on this booking may estimate it) keep their explicit party checks — see the note
+in roles.py.
 """
 
 from rest_framework.permissions import BasePermission
 
-from .models import User
+from .roles import Capability, user_can
 
 
-class IsProvider(BasePermission):
-    message = "Only providers can perform this action."
+def requires(capability, message):
+    """Build a permission class for one capability.
 
-    def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and request.user.role == User.Role.PROVIDER
-        )
+    A factory rather than six near-identical class bodies: the interesting part
+    of each is a single constant, and this keeps that obvious.
+    """
+
+    class _HasCapability(BasePermission):
+        def has_permission(self, request, view):
+            return user_can(request.user, capability)
+
+    _HasCapability.required_capability = capability
+    _HasCapability.message = message
+    _HasCapability.__name__ = f"Requires_{capability}"
+    return _HasCapability
 
 
-class IsCustomer(BasePermission):
-    message = "Only customers can perform this action."
+# Customer side
+CanBook = requires(Capability.BOOK, "Only customers can create bookings.")
+CanPay = requires(Capability.PAY, "Only customers can pay for a booking.")
+CanReview = requires(Capability.REVIEW, "Only customers can leave a review.")
 
-    def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and request.user.role == User.Role.CUSTOMER
-        )
+# Provider side
+CanOnboard = requires(Capability.ONBOARD, "Only providers can onboard.")
+CanManageProfile = requires(
+    Capability.MANAGE_PROFILE, "Only providers have a provider profile.",
+)
+CanManageOfferings = requires(
+    Capability.MANAGE_OFFERINGS, "Only providers can manage offerings.",
+)
+CanViewPriceHistory = requires(
+    Capability.VIEW_PRICE_HISTORY, "Only providers can view price history.",
+)

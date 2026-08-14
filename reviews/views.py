@@ -7,6 +7,8 @@ reviews is public, since that's what a customer weighs before booking.
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from accounts.permissions import CanReview
+
 from .models import Review
 from .serializers import (
     ReviewCreateSerializer,
@@ -17,7 +19,8 @@ from .serializers import (
 
 class ReviewCreateView(generics.CreateAPIView):
     serializer_class = ReviewCreateSerializer
-    permission_classes = [IsAuthenticated]  # booking-ownership enforced in serializer
+    # Role gate here; booking-ownership and "is it completed?" in the serializer.
+    permission_classes = [CanReview]
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):

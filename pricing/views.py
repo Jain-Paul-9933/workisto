@@ -2,7 +2,7 @@
 
 from rest_framework import generics
 
-from accounts.permissions import IsProvider
+from accounts.permissions import CanViewPriceHistory
 
 from .models import PriceChange
 from .serializers import PriceChangeSerializer
@@ -12,7 +12,7 @@ class OfferingPriceHistoryView(generics.ListAPIView):
     """GET /api/providers/me/offerings/{id}/price-history/ — why a price moved."""
 
     serializer_class = PriceChangeSerializer
-    permission_classes = [IsProvider]
+    permission_classes = [CanViewPriceHistory]
 
     def get_queryset(self):
         # Scoped to the caller's own offering — no peeking at others' pricing.
