@@ -119,8 +119,9 @@ def test_reviews_reprice_the_offering(provider, offering,
     customers = [make_customer(f"c{i}@x.com") for i in range(3)]
     bookings = [completed_booking(c, offering) for c in customers]
 
-    # The re-pricing task is dispatched on-commit; the fixture runs those
-    # callbacks (and CELERY_TASK_ALWAYS_EAGER makes the task execute inline).
+    # The re-pricing task is dispatched on-commit; this fixture runs those
+    # callbacks, and the eager-Celery fixture in the root conftest makes the
+    # task itself execute inline instead of going out to a broker.
     with django_capture_on_commit_callbacks(execute=True):
         for customer, booking in zip(customers, bookings):
             api.force_authenticate(customer)
