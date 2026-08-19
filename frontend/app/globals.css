@@ -1,19 +1,186 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   Workisto design tokens — ported from the Claude Design "Foundations" file.
+
+   Two layers, deliberately:
+     1. @theme below holds the ramps and scales. These are the same in both
+        themes — a ramp is a set of colours, not a decision about which to use.
+     2. The semantic names (--ui-*) further down ARE the decisions, and they are
+        what flips between light and dark. Components reference the semantic
+        names, never a raw ramp step, so a theme change is one block of CSS
+        rather than a `dark:` variant on every element.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --font-heading: var(--font-caprasimo), Georgia, serif;
+  --font-body: var(--font-figtree), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* The design's spacing scale (4.4 · 8.8 · 13.2 · 17.6 · 26.4 · 35.2) is
+     exactly 1.1× Tailwind's 4px base, so moving the base lands every numeric
+     utility on the design's rhythm: p-1 = 4.4px, p-4 = 17.6px, p-8 = 35.2px. */
+  --spacing: 0.275rem;
+
+  --text-title: 2.125rem;      /* 34px — page title, Caprasimo */
+  --text-title--line-height: 1.1;
+  --text-section: 1.375rem;    /* 22px — section heading, Caprasimo */
+  --text-section--line-height: 1.2;
+  --text-caption: 0.78125rem;  /* 12.5px — never load-bearing */
+
+  /* 8 controls · 16 inner · 28 containers · pill for buttons and inputs */
+  --radius-control: 8px;
+  --radius-inner: 16px;
+  --radius-card: 28px;
+
+  --shadow-sm: 0 1px 2px rgba(27, 29, 36, 0.06), 0 2px 8px rgba(27, 29, 36, 0.05);
+  --shadow-md: 0 4px 12px rgba(27, 29, 36, 0.09), 0 12px 28px rgba(27, 29, 36, 0.07);
+  --shadow-lg: 0 12px 32px rgba(27, 29, 36, 0.14), 0 32px 64px rgba(27, 29, 36, 0.11);
+
+  /* Primary — indigo blue */
+  --color-brand-100: #eef1fd;
+  --color-brand-200: #dbe1fa;
+  --color-brand-300: #bcc7f4;
+  --color-brand-400: #93a4ea;
+  --color-brand-500: #6d81dc;
+  --color-brand-600: #4c60c4;
+  --color-brand-700: #35479f;
+  --color-brand-800: #24326f;
+  --color-brand-900: #182146;
+
+  /* Second voice — sage */
+  --color-sage-100: #f0fae1;
+  --color-sage-200: #e1eecc;
+  --color-sage-300: #ccdbb2;
+  --color-sage-400: #aebf92;
+  --color-sage-500: #8fa073;
+  --color-sage-600: #728157;
+  --color-sage-700: #56633f;
+  --color-sage-800: #3d472b;
+  --color-sage-900: #272e1b;
+
+  /* Neutral ramp — cool, to sit under the paper-blue ground */
+  --color-ink-100: #fbfcfe;
+  --color-ink-200: #f0f3fa;
+  --color-ink-300: #e0e6f0;
+  --color-ink-400: #b4bccd;
+  --color-ink-500: #949db1;
+  --color-ink-600: #767f94;
+  --color-ink-700: #5a6376;
+  --color-ink-800: #3e4553;
+  --color-ink-900: #262b36;
 }
 
+/* --- Semantic tokens: light ------------------------------------------------ */
+:root {
+  color-scheme: light;
+
+  --ui-bg: #ffffff;
+  --ui-surface: #f4f7fc;
+  --ui-text: #1b1d24;
+  --ui-muted: #5a6376;
+  --ui-faint: #767f94;
+  --ui-divider: rgba(27, 29, 36, 0.16);
+
+  --ui-accent: #4c60c4;
+  --ui-accent-hover: #35479f;
+  --ui-accent-text: #f4f6ff;
+  --ui-accent-soft: #dbe1fa;
+  --ui-accent-ink: #35479f;
+
+  --ui-field-bg: #ffffff;
+  --ui-field-border: #e0e6f0;
+
+  --ui-danger: #a83a22;
+  --ui-danger-ink: #7d2f1c;
+  --ui-danger-soft: #f8dfd6;
+
+  /* Status tones — always paired with a text label, never colour alone. */
+  --tone-neutral-bg: #f0f3fa;
+  --tone-neutral-ink: #3e4553;
+  --tone-green-bg: #e1eecc;
+  --tone-green-ink: #3d472b;
+  --tone-amber-bg: #fbeccb;
+  --tone-amber-ink: #6b4c14;
+  --tone-red-bg: #f8dfd6;
+  --tone-red-ink: #7d2f1c;
+  --tone-indigo-bg: #dbe1fa;
+  --tone-indigo-ink: #35479f;
+}
+
+/* --- Semantic tokens: dark ------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+
+    --ui-bg: #171a21;
+    --ui-surface: #212630;
+    --ui-text: #e6eaf3;
+    --ui-muted: #b8c0cf;
+    --ui-faint: #99a2b3;
+    --ui-divider: rgba(230, 234, 243, 0.18);
+
+    /* Dark flips the accent to a lighter step with dark ink on top — the same
+       indigo at 600 would fail contrast against a near-black ground. */
+    --ui-accent: #8fa1ea;
+    --ui-accent-hover: #a9b7f0;
+    --ui-accent-text: #111a3d;
+    --ui-accent-soft: #2f3a6b;
+    --ui-accent-ink: #a9b7f0;
+
+    --ui-field-bg: #212630;
+    --ui-field-border: #39404e;
+
+    --ui-danger: #e08a71;
+    --ui-danger-ink: #f0b6a4;
+    --ui-danger-soft: #46261e;
+
+    --tone-neutral-bg: #2c3240;
+    --tone-neutral-ink: #d5dbe7;
+    --tone-green-bg: #2f3a22;
+    --tone-green-ink: #c3d4a6;
+    --tone-amber-bg: #423218;
+    --tone-amber-ink: #f0cf92;
+    --tone-red-bg: #46261e;
+    --tone-red-ink: #f0b6a4;
+    --tone-indigo-bg: #2f3a6b;
+    --tone-indigo-ink: #a9b7f0;
   }
 }
 
+/* Expose the semantic names as utilities (bg-surface, text-muted, …). `inline`
+   keeps them as var() references, so they follow the theme at use time. */
+@theme inline {
+  --color-bg: var(--ui-bg);
+  --color-surface: var(--ui-surface);
+  --color-ink: var(--ui-text);
+  --color-muted: var(--ui-muted);
+  --color-faint: var(--ui-faint);
+  --color-divider: var(--ui-divider);
+  --color-accent: var(--ui-accent);
+  --color-accent-soft: var(--ui-accent-soft);
+  --color-accent-ink: var(--ui-accent-ink);
+  --color-field: var(--ui-field-bg);
+  --color-field-border: var(--ui-field-border);
+  --color-danger: var(--ui-danger);
+  --color-danger-ink: var(--ui-danger-ink);
+  --color-danger-soft: var(--ui-danger-soft);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  font-family: var(--font-body);
+  text-wrap: pretty;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+}
+
+/* One focus treatment everywhere: a 2px accent ring held 2px off the control,
+   so it stays visible on both grounds and against a filled button. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
 }

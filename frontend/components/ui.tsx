@@ -1,52 +1,77 @@
 import { forwardRef } from "react";
 
+/**
+ * The primitives, ported from the Claude Design "Foundations" file.
+ *
+ * Everything here reads semantic tokens (`bg-surface`, `text-muted`) rather
+ * than ramp steps or `dark:` variants — the theme flip lives entirely in
+ * globals.css, so a component never restates it. Controls are 48px tall,
+ * comfortably over the 44px touch minimum, and the focus ring is global.
+ */
+
+const CONTROL =
+  "min-h-12 w-full rounded-full border-[1.5px] bg-field px-4 text-base text-ink " +
+  "outline-none transition placeholder:text-faint focus:border-accent";
+
+// --- Button ----------------------------------------------------------------
+
+const BUTTON_VARIANTS = {
+  // Filled: the one action a screen most wants you to take.
+  primary: "border-transparent bg-accent text-[var(--ui-accent-text)] hover:bg-[var(--ui-accent-hover)]",
+  // Outlined: real actions that shouldn't compete with the primary one.
+  secondary: "border-accent bg-transparent text-accent-ink hover:bg-accent-soft",
+  // Outlined rather than filled on purpose — destructive actions should be
+  // reachable without being the loudest thing on the screen.
+  danger: "border-danger bg-transparent text-danger-ink hover:bg-danger-soft",
+} as const;
+
 export const Button = forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(function Button({ className = "", ...props }, ref) {
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: keyof typeof BUTTON_VARIANTS;
+    loading?: boolean;
+  }
+>(function Button(
+  { className = "", variant = "primary", loading = false, children, disabled, ...props },
+  ref,
+) {
   return (
     <button
       ref={ref}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={
-        "w-full rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white " +
-        "transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 " +
+        "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full " +
+        "border-[1.5px] px-6 text-base font-semibold transition " +
+        "disabled:cursor-not-allowed disabled:opacity-45 " +
+        BUTTON_VARIANTS[variant] +
+        " " +
         className
       }
       {...props}
-    />
+    >
+      {loading && (
+        <span
+          aria-hidden="true"
+          className="size-4 animate-spin rounded-full border-2 border-current/40 border-t-current"
+        />
+      )}
+      {children}
+    </button>
   );
 });
 
-export function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
+// --- Form controls ---------------------------------------------------------
 
 export const Input = forwardRef<
   HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(function Input({ className = "", ...props }, ref) {
+  React.InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }
+>(function Input({ className = "", invalid, ...props }, ref) {
   return (
     <input
       ref={ref}
-      className={
-        "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-neutral-900 " +
-        "outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 " +
-        "dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 " +
-        className
-      }
+      aria-invalid={invalid || undefined}
+      className={`${CONTROL} ${invalid ? "border-danger" : "border-field-border"} ${className}`}
       {...props}
     />
   );
@@ -59,12 +84,7 @@ export const Select = forwardRef<
   return (
     <select
       ref={ref}
-      className={
-        "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-neutral-900 " +
-        "outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 " +
-        "dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 " +
-        className
-      }
+      className={`${CONTROL} border-field-border px-3 ${className}`}
       {...props}
     />
   );
@@ -77,10 +97,10 @@ export const Textarea = forwardRef<
   return (
     <textarea
       ref={ref}
+      // The one control that isn't a pill — a multi-line box reads as a box.
       className={
-        "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-neutral-900 " +
-        "outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 " +
-        "dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 " +
+        "w-full resize-y rounded-inner border-[1.5px] border-field-border bg-field px-4 py-3 " +
+        "text-base text-ink outline-none transition placeholder:text-faint focus:border-accent " +
         className
       }
       {...props}
@@ -88,10 +108,44 @@ export const Textarea = forwardRef<
   );
 });
 
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-sm font-semibold text-ink">{label}</span>
+      {children}
+      {hint && !error && <span className="text-caption text-muted">{hint}</span>}
+      {error && (
+        <span className="flex items-baseline gap-1.5 text-sm text-danger-ink">
+          {/* The glyph is decorative; the message carries the meaning. */}
+          <span aria-hidden="true">!</span>
+          {error}
+        </span>
+      )}
+    </label>
+  );
+}
+
 export function ErrorText({ children }: { children: React.ReactNode }) {
   if (!children) return null;
-  return <p className="text-sm text-red-600">{children}</p>;
+  return (
+    <p role="alert" className="flex items-baseline gap-1.5 text-sm text-danger-ink">
+      <span aria-hidden="true">!</span>
+      {children}
+    </p>
+  );
 }
+
+// --- Containers ------------------------------------------------------------
 
 export function Card({
   className = "",
@@ -103,9 +157,7 @@ export function Card({
   return (
     <div
       className={
-        "rounded-xl border border-neutral-200 bg-white p-5 shadow-sm " +
-        "dark:border-neutral-800 dark:bg-neutral-900 " +
-        className
+        "rounded-card border border-divider bg-bg p-5 shadow-sm " + className
       }
     >
       {children}
@@ -114,11 +166,11 @@ export function Card({
 }
 
 const BADGE_TONES = {
-  neutral: "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
-  green: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  amber: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  red: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-  indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+  neutral: "bg-[var(--tone-neutral-bg)] text-[var(--tone-neutral-ink)]",
+  green: "bg-[var(--tone-green-bg)] text-[var(--tone-green-ink)]",
+  amber: "bg-[var(--tone-amber-bg)] text-[var(--tone-amber-ink)]",
+  red: "bg-[var(--tone-red-bg)] text-[var(--tone-red-ink)]",
+  indigo: "bg-[var(--tone-indigo-bg)] text-[var(--tone-indigo-ink)]",
 } as const;
 
 export function Badge({
@@ -131,7 +183,9 @@ export function Badge({
   return (
     <span
       className={
-        "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium " + BADGE_TONES[tone]
+        "inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 " +
+        "text-[13px] font-semibold " +
+        BADGE_TONES[tone]
       }
     >
       {children}
